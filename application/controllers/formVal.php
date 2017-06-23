@@ -48,14 +48,40 @@ class FormVal extends CI_Controller {
         $this->output->enable_profiler(TRUE); //프로파일러호출
         $this->load->library('form_validation');
 
-        $this->form_validation->set_rules('username', '아이디', 'required');
-        $this->form_validation->set_rules('password', '비밀번호', 'required');
+        $this->form_validation->set_rules('user_id', '아이디', 'callback_user_id');
+        $this->form_validation->set_rules('password', '비밀번호', 'required|matches[passconf]');
         $this->form_validation->set_rules('passconf', '비밀번호확인', 'required');
-        $this->form_validation->set_rules('email', '이메일', 'required');
+        $this->form_validation->set_rules('email', '이메일', 'required|valid_email');
+
+		$this->form_validation->set_rules('count', '기본값', 'numeric');
+		$this->form_validation->set_rules('myselect', '셀렉트값', '');
+		$this->form_validation->set_rules('mycheck[]', '체크박스', '');
+		$this->form_validation->set_rules('myradio', '라디오버튼', '');
 
         if ($this->form_validation->run() == FALSE) {
             $this->load->view('formVal/forms_v');
         } else {
         }
     }
+
+    public function user_id($id) {
+
+		$this->load->database();
+
+		if ($id) {
+			$result = array();
+			$sql = "SELECT id FROM users WHERE user_id = '".$id."'";
+			$query = $this->db->query($sql);
+			$result = $query->row();
+			
+			if ($result) {
+				$this->form_validation->set_message('user_id', $id.'은 중복된 아이디입니다.');
+				return FALSE;
+			}  else {
+				return TRUE;
+			}
+		} else {
+			return FALSE;
+		}
+	}
 }
