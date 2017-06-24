@@ -3,8 +3,14 @@
 		<h1> form test </h1>
 	</header>
 
-    <?php echo validation_errors(); ?>
-
+    <?php //echo validation_errors(); ?>
+	<?php
+	if (form_error('user_id')) {
+		$error_userid = form_error('user_id');
+	} else {
+		$error_userid = form_error('check_userid');
+	}
+	?>
 	<form class="form-horizontal" method="post">
 		<fieldset>
 			<legend>폼 검증</legend>
@@ -13,14 +19,14 @@
 					<label class="control-label" for="input01">아이디</label>
 					<div class="controls">
 						<input type="text" class="input-xlarge" id="input01" name="user_id" value="<?php echo set_value('user_id');?>"/>
-						<p class="help-block">아이디를 입력하세요</p>
+						<p class="help-block"><?php echo (!$error_userid ?'아이디를 입력하세요':$error_userid);?></p>
 					</div>
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="input02">비밀번호</label>
 					<div class="controls">
                     	<input type="text" class="input-xlarge" id="input02" name="password" value="<?php echo set_value('password');?>"/>
-                    	<p class="help-block">비밀번호를 입력하세요</p>
+                    	<p class="help-block"><?php echo(!form_error('password')?'비밀번호를 입력하세요':form_error('password'));?></p>
 					</div>
 				</div>
 				<div class="control-group">
