@@ -27,6 +27,7 @@ class board extends CI_Controller {
 		parent::__construct();
 		$this->load->database();
 		$this->load->model('board_m');
+		$this->load->helper('alert');
 	}
 
 	public function index()
@@ -104,46 +105,164 @@ class board extends CI_Controller {
 	public function write()
 	{
 		echo "<meta http-equiv=\"content type\" content=\"text/html;charset=utf-8\">";
-		if ($_POST) {
-			$this->load->helper('alert');
 
-			//uri를 배열로 변환
-			$uri_array = $this->segment_explode($this->uri->uri_string());
+		if ($this->session->userdata('logged_in') == TRUE) {
 
-			if (in_array('page', $uri_array)) {
-				$pages = urldecode($this->url_explode($uri_array, 'page'));
+			$this->load->library('form_validation');
 
+			$this->form_validation->set_rules('title', '제목', 'required');
+			$this->form_validation->set_rules('contents', '내용', 'required');
+
+			if ($this->form_validation->run() == TRUE) {
+
+				//uri를 배열로 변환
+				$uri_array = $this->segment_explode($this->uri->uri_string());
+
+				if (in_array('page', $uri_array)) {
+					$pages = urldecode($this->url_explode($uri_array, 'page'));
+
+				} else {
+					$pages = 1;
+				}
+
+				/*if (!$this->input->post('title', TRUE) AND !$this->input-post('contents', TRUE)) {
+                    alert('비정상적인 접근입니다.', '/index.php/board/lists/'.$this->uri->segment(3).'/page/'.$pages);
+                    exit;
+                }*/
+
+				$write_data = array(
+					'user_id' => $this->session->userdata('user_id'),
+					'user_name' => $this->session->userdata('user_name'),
+					'title' => $this->input->post('title', TRUE),
+					'contents' => $this->input->post('contents', TRUE),
+					'table' => $this->uri->segment(3)
+				);
+
+				$result = $this->board_m->insert($write_data);
+
+				if ($result) {
+					alert('입력되었습니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
+					exit;
+				} else {
+					alert('다시 입력해주세요', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
+					exit;
+				}
 			} else {
-				$pages = 1;
-			}
-
-			if (!$this->input->post('title', TRUE) AND !$this->input-post('contents', TRUE)) {
-				alert('비정상적인 접근입니다.', '/index.php/board/lists/'.$this->uri->segment(3).'/page/'.$pages);
-				exit;
-			}
-
-			$write_data = array(
-				'title' => $this->input->post('title', TRUE),
-				'contents' => $this->input->post('contents', TRUE),
-				'table' => $this->uri->segment(3)
-			);
-
-			$result = $this->board_m->insert($write_data);
-
-			if ($result) {
-				alert('입력되었습니다.', '/index.php/board/lists/'.$this->uri->segment(3).'/page/'.$pages);
-				exit;
-			} else {
-				alert('다시 입력해주세요', '/index.php/board/lists/'.$this->uri->segment(3).'/page/'.$pages);
-				exit;
+				$this->load->view('write_v');
 			}
 		} else {
-			$this->load->view('write_v');
+			alert('로그인이 필요합니다.', '/index.php/auth/login');
+			exit;
 		}
 
 	}
 
 	public function edit()
+	{
+
+		//uri를 배열로 변환
+		$uri_array = $this->segment_explode($this->uri->uri_string());
+
+		if (in_array('page', $uri_array)) {
+			$pages = urldecode($this->url_explode($uri_array, 'page'));
+
+		} else {
+			$pages = 1;
+		}
+
+		echo "<meta http-equiv=\"content type\" content=\"text/html;charset=utf-8\">";
+
+		if ($this->session->userdata('logged_in') == TRUE) {
+
+			//본인확인
+			$writer_id = $this->board_m->writer_check($this->uri->segment(3), $this->uri->segment(5));
+
+			if ($writer_id->user_id != $this->session->userdata("user_name")) {
+				alert('자신의 글만 수정가능합니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/id/' . $this->uri->segment(5) . '/page/' . $pages);
+				exit;
+			}
+
+			$this->load->library('form_validation');
+
+			$this->form_validation->set_rules('title', '제목', 'required');
+			$this->form_validation->set_rules('contents', '내용', 'required');
+
+			if ($this->form_validation->run() == TRUE) {
+
+				if (!$this->input->post('title', TRUE) AND !$this->input - post('contents', TRUE)) {
+					alert('비정상적인 접근입니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
+					exit;
+				}
+
+				$edit_data = array(
+					'id' => $this->uri->segment(5),
+					'user_id' => $this->session->userdata('user_id'),
+					'user_name' => $this->session->userdata('user_name'),
+					'title' => $this->input->post('title', TRUE),
+					'contents' => $this->input->post('contents', TRUE),
+					'table' => $this->uri->segment(3)
+				);
+
+				$result = $this->board_m->modify($edit_data);
+
+				if ($result) {
+					alert('입력되었습니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
+					exit;
+				} else {
+					alert('다시 입력해주세요', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
+					exit;
+				}
+			} else {
+				$data['views'] = $this->board_m->getView($this->uri->segment(3), $this->uri->segment(5)); //게시판 이름, 게시물번호
+				$this->load->view('modify_v', $data);
+			}
+		} else {
+			alert('로그인이 필요합니다.', '/index.php/auth/login');
+			exit;
+		}
+	}
+
+	public function delete() {
+
+		//uri를 배열로 변환
+		$uri_array = $this->segment_explode($this->uri->uri_string());
+
+		if (in_array('page', $uri_array)) {
+			$pages = urldecode($this->url_explode($uri_array, 'page'));
+
+		} else {
+			$pages = 1;
+		}
+
+		echo "<meta http-equiv=\"content type\" content=\"text/html;charset=utf-8\">";
+
+		if ($this->session->userdata('logged_in') == TRUE) {
+
+			//본인확인
+			$writer_id = $this->board_m->writer_check($this->uri->segment(3), $this->uri->segment(5));
+
+			if ($writer_id->user_id != $this->session->userdata("user_name")) {
+				alert('자신의 글만 삭제가능합니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/id/' . $this->uri->segment(5) . '/page/' . $pages);
+				exit;
+			}
+
+			$result = $this->board_m->delete($this->uri->segment(3), $this->uri->segment(5));
+
+			if ($result) {
+				alert('삭제되었습니다.', '/index.php/board/lists/'.$this->uri->segment(3).'/page/'.$pages);
+				exit;
+			} else {
+				alert('삭제 실패했습니다.', '/index.php/board/lists/'.$this->uri->segment(3).'/id/'.$this->uri->segment(5).'/page/'.$pages);
+				exit;
+			}
+		} else {
+			alert('로그인이 필요합니다.', '/index.php/auth/login');
+			exit;
+		}
+
+	}
+
+/*	public function edit()
 	{
 		echo "<meta http-equiv=\"content type\" content=\"text/html;charset=utf-8\">";
 		if ($_POST) {
@@ -186,9 +305,9 @@ class board extends CI_Controller {
 			$this->load->view('modify_v', $data);
 		}
 
-	}
+	}*/
 
-	public function delete()
+/*	public function delete()
 	{
 		echo "<meta http-equiv=\"content type\" content=\"text/html;charset=utf-8\">";
 
@@ -213,7 +332,7 @@ class board extends CI_Controller {
 			alert('삭제 실패했습니다.', '/index.php/board/lists/'.$this->uri->segment(3).'/id/'.$this->uri->segment(5).'/page/'.$pages);
 			exit;
 		}
-	}
+	}*/
 
 	/**
 	 * url 중 key 값을 구분하여 값을 가져오도록

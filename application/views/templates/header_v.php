@@ -15,6 +15,20 @@
 <body>
 <div id="main">
 	<header id="header" data-role="header" data-position="fixed">
-		<blockquote>CIProject</blockquote>
+		<blockquote>
+			<h6>CIProject</h6>
+			<p>
+<?php
+	if ($this->session->userdata('logged_in') == TRUE) {
+?>
+	<?php echo $this->session->userdata('user_name'); ?> 님 환영합니다. <a href="/index.php/auth/logout" class="btn">로그아웃</a>
+<?php
+	} else {
+?>
+		<a href="/index.php/auth/login" class="btn">로그인</a>
+<?php
+	}
+?>
+			</p>
+		</blockquote>
 	</header>
-

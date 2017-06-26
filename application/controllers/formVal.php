@@ -25,6 +25,7 @@ class FormVal extends CI_Controller {
 	function __construct()
 	{
 		parent::__construct();
+		$this->load->library('form_validation');
 	}
 
 	public function index()
@@ -47,10 +48,9 @@ class FormVal extends CI_Controller {
 
         //$this->output->enable_profiler(TRUE); //프로파일러호출
 		//$this->load->helper(array('form', 'url'));
-        $this->load->library('form_validation');
 
 		$this->form_validation->set_rules('user_id', '아이디', 'required');
-		if ($this->input->post('user_id')) {
+		if ($this->input->post('user_id', TRUE)) {
 			$this->form_validation->set_rules('user_id', '아이디', 'required|min_length[5]|max_length[12]|callback_user_id_check');
 		}
 

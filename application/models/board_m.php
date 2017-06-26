@@ -55,8 +55,8 @@ class Board_m extends CI_Model {
 
 		$insert_array = array(
 			'pid' => 0,
-			'user_id' => 'bahara',
-			'user_name' => '바하라',
+			'user_id' => $arrays['user_id'],
+			'user_name' => $arrays['user_name'],
 			'title' => $arrays['title'],
 			'contents' => $arrays['contents']
 		);
@@ -92,6 +92,14 @@ class Board_m extends CI_Model {
 		$result = $this->db->delete($table, $delete_array);
 		return $result;
 
+	}
+
+	function writer_check($table, $id) {
+
+		$sql = "SELECT user_id FROM ".$table. " WHERE id = '".$id."'";
+		$query = $this->db->query($sql);
+
+		return $query->row();
 	}
 
 }
