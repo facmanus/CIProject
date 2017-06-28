@@ -99,6 +99,7 @@ class board extends CI_Controller {
 
 	public function view() {
 		$data['views'] = $this->board_m->getView($this->uri->segment(3), $this->uri->segment(5)); //게시판 이름, 게시물번호
+		$data['comment_list'] = $this->board_m->getCommentsList('comments', $this->uri->segment(5)); //게시판 이름, 게시물번호
 		$this->load->view('view_v', $data);
 	}
 
@@ -241,7 +242,7 @@ class board extends CI_Controller {
 			//본인확인
 			$writer_id = $this->board_m->writer_check($this->uri->segment(3), $this->uri->segment(5));
 
-			if ($writer_id->user_id != $this->session->userdata("user_name")) {
+			if ($writer_id->user_id != $this->session->userdata("user_id")) {
 				alert('자신의 글만 삭제가능합니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/id/' . $this->uri->segment(5) . '/page/' . $pages);
 				exit;
 			}

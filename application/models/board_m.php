@@ -102,4 +102,25 @@ class Board_m extends CI_Model {
 		return $query->row();
 	}
 
+	function insert_comment($arrays) {
+
+		$insert_array = array(
+			'bid' => $arrays['bid'],
+			'user_id' => $arrays['user_id'],
+			'user_name' => $arrays['user_name'],
+			'contents' => $arrays['contents']
+		);
+
+		$result = $this->db->insert($arrays['table'], $insert_array);
+		return $result;
+
+	}
+
+	function getCommentsList($table='comments', $id) {
+
+		$sql="SELECT * FROM ".$table." WHERE bid = '".$id."' ORDER BY id DESC";
+		//echo $sql;
+		$query = $this->db->query($sql);
+		return $result = $query->result();
+	}
 }
