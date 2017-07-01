@@ -25,14 +25,14 @@ class board extends CI_Controller {
 	function __construct()
 	{
 		parent::__construct();
-		$this->load->database();
 		$this->load->model('board_m');
-		$this->load->helper('alert');
+		$this->load->helper(array('alert','form','date','url'));
 	}
 
 	public function index()
 	{
 		$this->lists();
+		// $this->load->view('upload_form', array('error' => ' ' ));
 	}
 
 	public function  _remap($method) {
@@ -131,6 +131,7 @@ class board extends CI_Controller {
                     exit;
                 }*/
 
+				//우선 게시글 저장
 				$write_data = array(
 					'user_id' => $this->session->userdata('user_id'),
 					'user_name' => $this->session->userdata('user_name'),
@@ -139,14 +140,80 @@ class board extends CI_Controller {
 					'table' => $this->uri->segment(3)
 				);
 
-				$result = $this->board_m->insert($write_data);
+				$bid = $this->board_m->insert($write_data);
 
-				if ($result) {
-					alert('입력되었습니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
-					exit;
-				} else {
+				if (!$bid) {
 					alert('다시 입력해주세요', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
 					exit;
+				}
+
+				//파일이 없는 경우에도 배열이 생성되기 때문에 적합하지 않음. 파일이 있다면...
+				//if ($_FILES) {
+				if ($_FILES["userfile"]["name"] !='') {
+//
+//					foreach ($_FILES["userfile"] as $key => $value) {
+//						echo "key==".$key." value==".$value."<br>";
+//					}
+
+					$config['upload_path'] = 'upload';
+					$config['allowed_types'] = 'gif|jpg|png';
+					$config['max_size']     = '10240';
+					$config['max_width'] = '1024';
+					$config['max_height'] = '768';
+					$config['encrypt_name'] = TRUE;	//파일명암호화
+					$config['remove_spaces'] = TRUE;	//공백제거
+
+					$this->load->library('upload', $config);
+
+					if (!$this->upload->do_upload()){
+						//업로드에 에러발생시 게시글 삭제
+						$this->board_m->delete($this->uri->segment(3), $bid);
+						$data['error'] = $this->upload->display_errors();
+						$this->load->view('write_v', $data);
+					} else {
+
+						//썸네일 생성
+						/*						$config['image_library'] = 'gd2';
+                                                $config['source_image'] = $upload_data['full_path'];
+                                                $config['create_thumb'] = TRUE;
+                                                $config['width'] = 300;
+                                                $config['height'] = 300;
+
+                                                $this->load-library('image_lib', $config);
+                                                $this->image_lib->resize();*/
+
+						//파일업로드된 데이타
+						$upload_data = $this->upload->data();
+
+						$file_data = array(
+							'bid' => $bid,
+							'file_name' => $upload_data['file_name'],
+							'file_type' => $upload_data['file_type'],
+							'orig_name' => $upload_data['orig_name'],
+							'file_ext' => $upload_data['file_ext'],
+							'file_size' => $upload_data['file_size'],
+							'image_width' => $upload_data['image_width'],
+							'image_height' => $upload_data['image_height'],
+							'image_type' => $upload_data['image_type'],
+							'image_size_str' => $upload_data['image_size_str'],
+							'thumb_name' => str_replace('.'.$upload_data['file_ext'], '' , $upload_data['orig_name']).'_thumbs.'.$upload_data['file_ext']
+						);
+
+						$result = $this->board_m->insert_image($file_data);
+
+						if ($result) {
+							//alert('입력되었습니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
+							redirect('board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
+						} else {
+							$this->board_m->delete($this->uri->segment(3), $bid);
+							alert('다시 입력해주세요', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
+							exit;
+						}
+
+					}
+
+				} else {
+					redirect('board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
 				}
 			} else {
 				$this->load->view('write_v');

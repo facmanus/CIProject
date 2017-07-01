@@ -34,7 +34,7 @@
 				<label class="control-label" for="input01">댓글</label>
 				<div class="controls">
 					<textarea class="input-xlarge" id="input01" name="contents" rows="3"></textarea>
-					<input class="btn btn-primary" type="button" onclick="comment_add()" value="작성">
+					<input class="btn btn-primary" type="button"  id="comment_add" value="작성">
 					<p class="help_block"></p>
 				</div>
 			</div>
@@ -52,7 +52,7 @@
 				</th>
 				<td><?php echo $lt->contents;?></td>
 				<td><time datetime="<?php echo mdate('%Y-%M-%j', human_to_unix($lt->reg_date));?>"><?php echo $lt->reg_date;?></time></td>
-				<td><a href="#" onclick="comment_delete('<?php echo $lt->id;?>')"><i class="icon-trash">삭제</i></a></td>
+				<td><a href="#" class="comment_delete" vals="<?php echo $lt->id;?>"><i class="icon-trash">삭제</i></a></td>
 			</tr>
 			<?php
 			}
@@ -62,82 +62,62 @@
 	</div>
 	<div>
 		<form id="frmSearch" method="post">
-			<input type="text" name="search_word" id="q" onkeypress="board_search_enter(document.q);"/><input type="button" value="검색" id="search_btn"/>
+			<input type="text"name="search_word" id="q" onkeypress="board_search_enter(document.q);"/><input type="button" value="검색" id="search_btn"/>
 		</form>
 	</div>
 </article>
 <script type="text/javascript" >
 
-	function comment_add() {
-		var csrf_token = getCookie('csrf_cookie_name');
-		var param = "contents=" + encodeURIComponent(document.com_add.contents.value) + "&csrf_test_name=" + csrf_token + "&table=<?php echo $this->uri->segment(3);?>&id=<?php echo $this->uri->segment(5);?>";
-		sendRequest("/index.php/ajax_board/write", param, add_action, "POST");
-	}
-
-	function add_action() {
-		if (httpRequest.readyState == 4) {
-			if (httpRequest.status == 200) {
-				if (httpRequest.responseText == 1000) {
+$(function() {
+	$("#comment_add").click(function() {
+		$.ajax({
+			url : "/index.php/ajax_board/write",
+			method : "POST",
+			data : {
+				"contents" : encodeURIComponent($("#input01").val()),
+				"csrf_token" : $.cookie('csrf_cookie_name'),
+				"bid" : "<?php echo $this->uri->segment(5);?>"
+			},
+			dataType: "html",
+			complete:function(xhr, textStatus) {
+				if (xhr.responseText == 1000) {
 					alert('댓글을 입력하세요.')
-				} else if (httpRequest.responseText == 2000) {
+				} else if (xhr.responseText == 2000) {
 					alert('다시 입력하세요.')
-				} else if (httpRequest.responseText == 9000) {
+				} else if (xhr.responseText == 9000) {
 					alert('로그인이 필요합니다.')
 				} else {
-
-					var comments = document.getElementById("comment_area");
-					comments.innerHTML = httpRequest.responseText;
-
-					var textareas = document.getElementById("input01");
-					textareas.value;
+				    console.log(xhr.responseText);
+					$("#comment_area").html(xhr.responseText);
+					$("#input01").val("");
 				}
 			}
-		}
-	}
+		});
+	});
 
-	function comment_delete(id) {
-		var csrf_token = getCookie('csrf_cookie_name');
-		var param = "csrf_test_name=" + csrf_token + "&table=<?php echo $this->uri->segment(3);?>&id="+id;
-		sendRequest("/index.php/ajax_board/delete", param, delete_action, "POST");
-	}
-
-	function delete_action() {
-		if (httpRequest.readyState == 4) {
-			if (httpRequest.status == 200) {
-				if (httpRequest.responseText == 2000) {
-					alert('다시 시도하세요.')
-				} else if (httpRequest.responseText == 8000) {
+	$(".comment_delete").click(function() {
+		$.ajax({
+			url : "/index.php/ajax_board/delete",
+			method : "POST",
+			data : {
+				"csrf_token" : $.cookie('csrf_cookie_name'),
+				"id" : $(this).attr("vals")
+			},
+			dataType: "html",
+			complete:function(xhr, textStatus) {
+				if (xhr.responseText == 8000) {
 					alert('자신의 글만 삭제가능합니다.')
-				} else if (httpRequest.responseText == 9000) {
+				} else if (xhr.responseText == 2000) {
+					alert('다시 시도하세요.')
+				} else if (xhr.responseText == 9000) {
 					alert('로그인이 필요합니다.')
 				} else {
-					var comment_id = httpRequest.responseText;
-					console.log("comment_id....."+comment_id);
-					var delete_tr = document.getElementById("row_num_"+comment_id);
-					delete_tr.parentNode.removeChild(delete_tr);
-					alert('삭제되었습니다.')
+					$("#row_num_"+xhr.responseText).remove();
+				    alert('삭제되었습니다.')
 				}
 			}
-		}
-	}
+		});
+	});
+});
 
-	function getCookie(name) {
-		var nameOfCookie = name + "=";
-		var x = 0;
-
-		while ( x <= document.cookie.length) {
-			var y = (x+nameOfCookie.length);
-
-			if (document.cookie.substring(x,y) == nameOfCookie) {
-				if (endOfCookie=document.cookie.indexOf((";",y)) == -1)
-					endOfCookie = document.cookie.length;
-				return unescape(document.cookie.substring(y, endOfCookie));
-			}
-
-			x = document.cookie.indexOf(" ", x) + 1;
-			if (x == 0)
-				break;
-		}
-		return "";
-	}
 </script>

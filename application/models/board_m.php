@@ -61,8 +61,8 @@ class Board_m extends CI_Model {
 			'contents' => $arrays['contents']
 		);
 
-		$result = $this->db->insert($arrays['table'], $insert_array);
-		return $result;
+		$this->db->insert($arrays['table'], $insert_array);
+		return $this->db->insert_id();
 
 	}
 
@@ -123,4 +123,36 @@ class Board_m extends CI_Model {
 		$query = $this->db->query($sql);
 		return $result = $query->result();
 	}
+
+	function insert_image($arrays) {
+
+		$detail = array(
+			'file_type' => $arrays['file_type'],
+			'file_size' => $arrays['file_size'],
+			'image_width' => $arrays['image_width'],
+			'image_height' => $arrays['image_height'],
+			'image_type' => $arrays['image_type']
+		);
+		$insert_array = array(
+			'bid' => $arrays['bid'],
+			'file_name' => $arrays['file_name'],
+			'file_type' => $arrays['file_type'],
+			'orig_name' => $arrays['orig_name'],
+			'file_ext' => $arrays['file_ext'],
+			'file_size' => $arrays['file_size'],
+			'image_width' => $arrays['image_width'],
+			'image_height' => $arrays['image_height'],
+			'image_type' => $arrays['image_type'],
+			'image_size_str' => $arrays['image_size_str'],
+			'thumb_name' => $arrays['thumb_name'],
+			'defail_info' => serialize($detail)
+		);
+
+		$this->db->insert('images', $insert_array);
+
+		return $this->db->insert_id();
+
+	}
+
+
 }

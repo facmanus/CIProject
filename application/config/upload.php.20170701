@@ -1,0 +1,17 @@
+<?php
+/**
+ * Created by IntelliJ IDEA.
+ * User: bahara
+ * Date: 2017-07-01
+ * Time: 오전 12:47
+ */
+
+//$config['upload_path'] = './upload/';
+//$config['allowed_types'] = 'gif|jpg|png';
+//$config['max_size']     = '10240';
+//$config['max_width'] = '1024';
+//$config['max_height'] = '768';
+//$config['encrypt_name'] = TRUE;	//파일명암호화
+//$config['remove_spaces'] = TRUE;	//공백제거
+
+?>

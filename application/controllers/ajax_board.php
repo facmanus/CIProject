@@ -34,7 +34,7 @@ class Ajax_board extends CI_Controller {
 		if ($this->session->userdata('logged_in') == TRUE) {
 
 			$table = "comments"; //$this->input->post('table', TRUE);
-			$bid = $this->input->post('id', TRUE);
+			$bid = $this->input->post('bid', TRUE);
 			$contents = $this->input->post('contents', TRUE);
 
 			if ($contents != '') {
@@ -62,6 +62,7 @@ class Ajax_board extends CI_Controller {
 							</th>
 							<td><?php echo $lt->contents;?></td>
 							<td><time datetime="<?php echo mdate('%Y-%M-%j', human_to_unix($lt->reg_date));?>"><?php echo $lt->reg_date;?></time></td>
+							<td><a href="#" class="comment_delete" vals="<?php echo $lt->id;?>"><i class="icon-trash">삭제</i></a></td>
 						</tr>
 <?php
                     }
