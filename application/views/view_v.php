@@ -13,7 +13,14 @@
 		</thead>
 		<tbody>
 		<tr>
-			<th colspan="4"><?php echo $views->contents ?></th>
+			<th colspan="4">
+				<?php echo $views->contents ?>
+				<?php if ($images) { ?>
+				<div id="image_area">
+					<img src="/upload/<?php echo $images->file_name ?>" />
+				</div>
+				<?php } ?>
+			</th>
 		</tr>
 		</tbody>
 		<tfoot>
@@ -59,11 +66,6 @@
 			?>
 			</tbody>
 		</table>
-	</div>
-	<div>
-		<form id="frmSearch" method="post">
-			<input type="text"name="search_word" id="q" onkeypress="board_search_enter(document.q);"/><input type="button" value="검색" id="search_btn"/>
-		</form>
 	</div>
 </article>
 <script type="text/javascript" >

@@ -154,5 +154,22 @@ class Board_m extends CI_Model {
 
 	}
 
+	function getImage($table='image', $bid) {
 
+		$sql = "SELECT * FROM ".$table. " WHERE bid = '".$bid."'";
+		$query = $this->db->query($sql);
+
+		$result = $query->row();
+
+		return $result;
+	}
+
+	function deleteImage($table='images', $bid) {
+		$delete_array = array(
+			'bid' => $bid
+		);
+
+		$result = $this->db->delete($table, $delete_array);
+		return $result;
+	}
 }

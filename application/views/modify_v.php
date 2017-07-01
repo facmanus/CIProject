@@ -3,7 +3,12 @@
 		<h1> 게시판수정</h1>
 	</header>
 
-	<form class="form-horizontal" method="post" action="" id="write_action">
+	<?php
+	//csrf 방지
+	$attributes = array('class' => 'form-horizontal', 'id' => 'write_action');
+	//echo form_open('', $attributes);
+	echo form_open_multipart('', $attributes);
+	?>
 		<fieldset>
 			<legend>게시글수정</legend>
 			<div class="control-group">
@@ -19,6 +24,20 @@
 					<p class="help-block">게시글의 내용을 써주세요.</p>
 				</div>
 				</label>
+				<label class="control-label" for="input03">파일</label>
+				<div class="controls">
+					<input type="file" class="input-xlarge" id="input03" name="userfile" <?php echo set_value('userfile');?> />
+					<p class="help-block">파일을 선택해주세요.</p>
+				</div>
+				</label>
+				<div class="controls">
+					<?php
+					if (@$error) {
+						echo "<p>".$error."</p>";
+					}
+					?>
+					<p></p><?php echo validation_errors(); ?></p>
+				</div>
 			</div>
 
 			<div class="form-actions">

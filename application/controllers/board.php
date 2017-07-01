@@ -100,6 +100,8 @@ class board extends CI_Controller {
 	public function view() {
 		$data['views'] = $this->board_m->getView($this->uri->segment(3), $this->uri->segment(5)); //게시판 이름, 게시물번호
 		$data['comment_list'] = $this->board_m->getCommentsList('comments', $this->uri->segment(5)); //게시판 이름, 게시물번호
+		$bid = $data['views']->id;
+		$data['images'] = $this->board_m->getImage('images', $bid); //게시판 이름, 게시물번호
 		$this->load->view('view_v', $data);
 	}
 
@@ -172,18 +174,19 @@ class board extends CI_Controller {
 						$this->load->view('write_v', $data);
 					} else {
 
-						//썸네일 생성
-						/*						$config['image_library'] = 'gd2';
-                                                $config['source_image'] = $upload_data['full_path'];
-                                                $config['create_thumb'] = TRUE;
-                                                $config['width'] = 300;
-                                                $config['height'] = 300;
-
-                                                $this->load-library('image_lib', $config);
-                                                $this->image_lib->resize();*/
-
 						//파일업로드된 데이타
 						$upload_data = $this->upload->data();
+
+						//썸네일 생성
+						$config['image_library'] = 'gd2';
+						$config['source_image'] = $upload_data['full_path'];
+						$config['create_thumb'] = TRUE;
+						$config['maintain_ratio'] = TRUE;
+						$config['width'] = 300;
+						$config['height'] = 300;
+
+						$this->load->library('image_lib', $config);
+						$this->image_lib->resize();
 
 						$file_data = array(
 							'bid' => $bid,
@@ -273,12 +276,79 @@ class board extends CI_Controller {
 
 				$result = $this->board_m->modify($edit_data);
 
-				if ($result) {
-					alert('입력되었습니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
-					exit;
-				} else {
+				if (!$result) {
 					alert('다시 입력해주세요', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
 					exit;
+				}
+
+				if ($_FILES["userfile"]["name"] !='') {
+//
+//					foreach ($_FILES["userfile"] as $key => $value) {
+//						echo "key==".$key." value==".$value."<br>";
+//					}
+
+					$config['upload_path'] = 'upload';
+					$config['allowed_types'] = 'gif|jpg|png';
+					$config['max_size']     = '10240';
+					$config['max_width'] = '1024';
+					$config['max_height'] = '768';
+					$config['encrypt_name'] = TRUE;	//파일명암호화
+					$config['remove_spaces'] = TRUE;	//공백제거
+
+					$this->load->library('upload', $config);
+
+					if (!$this->upload->do_upload()){
+						$data['error'] = $this->upload->display_errors();
+						$this->load->view('write_v', $data);
+					} else {
+
+						$bid = $this->uri->segment(5);
+						//기존 이미지 데이타 삭제
+						$this->board_m->deleteImage('images', $bid);
+
+						//파일업로드된 데이타
+						$upload_data = $this->upload->data();
+
+						//썸네일 생성
+						$config['image_library'] = 'gd2';
+						$config['source_image'] = $upload_data['full_path'];
+						$config['create_thumb'] = TRUE;
+						$config['maintain_ratio'] = TRUE;
+						$config['width'] = 300;
+						$config['height'] = 300;
+
+						$this->load->library('image_lib', $config);
+						$this->image_lib->resize();
+
+						$file_data = array(
+							'bid' => $bid,
+							'file_name' => $upload_data['file_name'],
+							'file_type' => $upload_data['file_type'],
+							'orig_name' => $upload_data['orig_name'],
+							'file_ext' => $upload_data['file_ext'],
+							'file_size' => $upload_data['file_size'],
+							'image_width' => $upload_data['image_width'],
+							'image_height' => $upload_data['image_height'],
+							'image_type' => $upload_data['image_type'],
+							'image_size_str' => $upload_data['image_size_str'],
+							'thumb_name' => str_replace('.'.$upload_data['file_ext'], '' , $upload_data['orig_name']).'_thumbs.'.$upload_data['file_ext']
+						);
+
+						$result = $this->board_m->insert_image($file_data);
+
+						if ($result) {
+							//alert('입력되었습니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
+							redirect('board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
+						} else {
+							$this->board_m->delete($this->uri->segment(3), $bid);
+							alert('다시 입력해주세요', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
+							exit;
+						}
+
+					}
+
+				} else {
+					redirect('board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
 				}
 			} else {
 				$data['views'] = $this->board_m->getView($this->uri->segment(3), $this->uri->segment(5)); //게시판 이름, 게시물번호
@@ -315,6 +385,7 @@ class board extends CI_Controller {
 			}
 
 			$result = $this->board_m->delete($this->uri->segment(3), $this->uri->segment(5));
+			$this->board_m->deleteImage('images', $this->uri->segment(5));
 
 			if ($result) {
 				alert('삭제되었습니다.', '/index.php/board/lists/'.$this->uri->segment(3).'/page/'.$pages);
@@ -412,7 +483,7 @@ class board extends CI_Controller {
 	function url_explode($url, $key) {
 		$cnt = count($url);
 		for ($i=0; $cnt> $i; $i++) {
-			if ($url[$i] == $key) {
+			if ($i < $cnt-1 && $url[$i] == $key) {
 				$k = $i+1;
 				return $url[$k];
 			}
