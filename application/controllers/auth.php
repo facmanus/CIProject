@@ -93,7 +93,7 @@ class Auth extends CI_Controller {
 		$this->session->sess_destroy();
 
 		echo "<meta http-equiv=\"content type\" content=\"text/html;charset=utf-8\">";
-		alert('로그아웃되었습니다.', '/index.php/board/lists/board/page/1');
+		alert('로그아웃되었습니다.', '/');
 		exit;
 	}
 }

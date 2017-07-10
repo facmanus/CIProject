@@ -15,22 +15,79 @@
 </head>
 
 <body>
-<div id="main">
-	<header id="header" data-role="header" data-position="fixed">
-		<blockquote>
-			<h6>CIProject</h6>
-			<p>
+
+<nav class="navbar navbar-default navbar-static-top">
+	<div class="container-fluid">
+		<!-- Brand and toggle get grouped for better mobile display -->
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#menu">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="/">CIProject</a>
+		</div>
+
+		<!-- Collect the nav links, forms, and other content for toggling -->
+		<div class="collapse navbar-collapse" id="menu">
+			<!--			<ul class="nav navbar-nav">
+                <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
+                <li><a href="#">Link</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">One more separated link</a></li>
+                    </ul>
+                </li>-->
+
+			<ul class="nav navbar-nav navbar-right">
+				<li>
 <?php
-	if ($this->session->userdata('logged_in') == TRUE) {
+if ($this->session->userdata('logged_in') == TRUE) {
 ?>
-	<?php echo $this->session->userdata('user_name'); ?> 님 환영합니다. <a href="/index.php/auth/logout" class="btn">로그아웃</a>
+					<p class="navbar-text"><?php echo $this->session->userdata('user_name'); ?> 님 환영합니다.</p>
+					<button type="button" class="btn btn-default navbar-btn" id="btn_signout" >Sign out</button>
 <?php
-	} else {
+} else {
 ?>
-		<a href="/index.php/auth/login" class="btn">로그인</a>
+					<?php
+					//csrf 방지
+					$attributes = array('class' => 'navbar-form navbar-right', 'id' => 'auth_login', 'role' => 'login');
+					echo form_open('/index.php/auth/login', $attributes);
+					?>
+					<div class="form-group">
+<!--						<label for="user_id" class="sr-only">userid</label>-->
+						<input type="text" name="user_id" id="user_id" class="form-control" placeholder="enter Id">
+						<label for="password" class="sr-only">password</label>
+						<input type="text" name="password" id="password" class="form-control" placeholder="password">
+					</div>
+					<button type="submit" class="btn btn-default">Submit</button>
 <?php
-	}
+}
 ?>
-			</p>
-		</blockquote>
-	</header>
+				</li>
+				<li><a href="/">Board</a></li>
+				<!--				<li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Dropdown <span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                    </ul>
+                </li>-->
+			</ul>
+		</div>
+		<!-- /.navbar-collapse -->
+	</div>
+	<!-- /.container-fluid -->
+</nav>
+

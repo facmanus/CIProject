@@ -39,7 +39,7 @@ class board extends CI_Controller {
 		$this->load->view('templates/header_v');
 
 		if (method_exists($this, $method)) {
-			$this->load->view('templates/board_header_v');
+			//$this->load->view('templates/board_header_v');
 			$this->{"{$method}"}();
 		}
 
@@ -49,7 +49,7 @@ class board extends CI_Controller {
 	public function lists()
 	{
 
-		$this->output->enable_profiler(TRUE); //프로파일러호출
+		//$this->output->enable_profiler(TRUE); //프로파일러호출
 		$search_word = $page_url = '';
 		$uri_segment = 5;
 
@@ -69,6 +69,33 @@ class board extends CI_Controller {
 		$config['total_rows'] = $this->board_m->getList($this->uri->segment(3), 'count', '', '', $search_word); //총게시글수
 		$config['per_page'] = 5; //페이지당 글 수
 		$config['uri_segment'] = $uri_segment; //페이지 번호 위치 세그먼트
+		$config['num_links'] = 2;
+		$config['page_query_string'] = FALSE;
+// $config['use_page_numbers'] = TRUE;
+		$config['query_string_segment'] = 'page';
+		$config['full_tag_open'] = '<nav aria-label="Page navigation"><ul class="pagination">';
+		$config['full_tag_close'] = '</ul></nav><!--pagination-->';
+//$config['first_link'] = '&laquo; First';
+		$config['first_link'] = FALSE;
+		$config['first_tag_open'] = '<li class="prev page">';
+		$config['first_tag_close'] = '</li>';
+//$config['last_link'] = '<span aria-hidden=\"true\">&raquo;</span>;';
+		$config['last_link'] = FALSE;
+		$config['last_tag_open'] = '<li>';
+		$config['last_tag_close'] = '</li>';
+		$config['next_link'] = '<span aria-hidden=\"true\">&raquo;</span>';
+		$config['next_tag_open'] = '<li class="next page">';
+		$config['next_tag_close'] = '</li>';
+		$config['prev_link'] = '<span aria-hidden="true">&laquo;</span>';
+		$config['prev_tag_open'] = '<li class="prev page">';
+		$config['prev_tag_close'] = '</li>';
+		$config['cur_tag_open'] = '<li class="active"><a href="">';
+		$config['cur_tag_close'] = '</a></li>';
+		$config['num_tag_open'] = '<li>';
+		$config['num_tag_close'] = '</li>';
+// $config['display_pages'] = FALSE;
+//
+		$config['anchor_class'] = 'follow_link';
 
 		//pagination 초기화
 		$this->pagination->initialize($config);
@@ -188,6 +215,20 @@ class board extends CI_Controller {
 						$this->load->library('image_lib', $config);
 						$this->image_lib->resize();
 
+						//워터마크 생성
+						$config['source_image'] = $upload_data['full_path'];
+						$config['wm_text'] = 'fac.manus';
+						$config['wm_type'] = 'text';
+						//$config['wm_font_path'] = './system/fonts/texb.ttf';
+						//$config['wm_font_path'] = './system/fonts/texb.ttf';
+						$config['wm_font_size'] = '20';
+						$config['wm_font_color'] = 'ffffff';
+						$config['vm_vrt_alignment'] = 'bottom';
+						$config['wm_hor_alignment'] = 'right';
+						$config['wm_padding'] = '20';
+						$this->image_lib->initialize($config);
+						$this->image_lib->watermark();
+
 						$file_data = array(
 							'bid' => $bid,
 							'file_name' => $upload_data['file_name'],
@@ -206,7 +247,7 @@ class board extends CI_Controller {
 
 						if ($result) {
 							//alert('입력되었습니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
-							redirect('board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
+							redirect('/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
 						} else {
 							$this->board_m->delete($this->uri->segment(3), $bid);
 							alert('다시 입력해주세요', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
@@ -216,7 +257,7 @@ class board extends CI_Controller {
 					}
 
 				} else {
-					redirect('board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
+					redirect('/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
 				}
 			} else {
 				$this->load->view('write_v');
@@ -248,8 +289,8 @@ class board extends CI_Controller {
 			//본인확인
 			$writer_id = $this->board_m->writer_check($this->uri->segment(3), $this->uri->segment(5));
 
-			if ($writer_id->user_id != $this->session->userdata("user_name")) {
-				alert('자신의 글만 수정가능합니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/id/' . $this->uri->segment(5) . '/page/' . $pages);
+			if ($writer_id->user_id != $this->session->userdata("user_id")) {
+				alert('자신의 글만 수정가능합니다.', '/index.php/board/view/' . $this->uri->segment(3) . '/id/' . $this->uri->segment(5) . '/page/' . $pages);
 				exit;
 			}
 
@@ -309,16 +350,37 @@ class board extends CI_Controller {
 						//파일업로드된 데이타
 						$upload_data = $this->upload->data();
 
-						//썸네일 생성
+						//이미지 라이브러리 호출
 						$config['image_library'] = 'gd2';
+						$this->load->library('image_lib', $config);
+
+						//워터마크 생성(왜인지 몰라도 안됨.. 썸네일 설정과 엉키는 듯..)
+						$config['source_image'] = $upload_data['full_path'];
+						$config['wm_text'] = 'fac.manus';
+						$config['wm_type'] = 'text';
+						//$config['wm_font_path'] = './system/fonts/texb.ttf';
+						$config['wm_font_size'] = '16';
+						$config['wm_font_color'] = 'ffffff';
+						$config['wm_vrt_alignment'] = 'bottom';
+						$config['wm_hor_alignment'] = 'center';
+						$config['wm_padding'] = '0'; //이 수치를 크게 주면 글자가 이미지 밑으로 내려감...왜지?
+
+						$this->image_lib->initialize($config);
+						$this->image_lib->watermark();
+
+						//워터마크 생성 -> 클리어 -> 썸네일 설정->초기화
+						$this->image_lib->clear();
+
+						//썸네일 생성
 						$config['source_image'] = $upload_data['full_path'];
 						$config['create_thumb'] = TRUE;
 						$config['maintain_ratio'] = TRUE;
 						$config['width'] = 300;
 						$config['height'] = 300;
 
-						$this->load->library('image_lib', $config);
+						$this->image_lib->initialize($config); 
 						$this->image_lib->resize();
+
 
 						$file_data = array(
 							'bid' => $bid,
@@ -338,7 +400,7 @@ class board extends CI_Controller {
 
 						if ($result) {
 							//alert('입력되었습니다.', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
-							redirect('board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
+							redirect('/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
 						} else {
 							$this->board_m->delete($this->uri->segment(3), $bid);
 							alert('다시 입력해주세요', '/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages);
@@ -348,7 +410,7 @@ class board extends CI_Controller {
 					}
 
 				} else {
-					redirect('board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
+					redirect('/index.php/board/lists/' . $this->uri->segment(3) . '/page/' . $pages); exit;
 				}
 			} else {
 				$data['views'] = $this->board_m->getView($this->uri->segment(3), $this->uri->segment(5)); //게시판 이름, 게시물번호

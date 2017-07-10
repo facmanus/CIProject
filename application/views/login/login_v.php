@@ -7,7 +7,7 @@
 	<?php
 	//csrf 방지
 	$attributes = array('class' => 'form-horizontal', 'id' => 'auth_login');
-	echo form_open('/auth/login', $attributes);
+	echo form_open('/index.php/auth/login', $attributes);
 	?>
 		<fieldset>
 			<legend>폼 검증</legend>
