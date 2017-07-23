@@ -58,7 +58,7 @@
 
 	window.fbAsyncInit = function() { //이 이하의 함수는 sdk를 모두 읽어들인 후에 실행됨.
 		FB.init({
-			appId            : '839457696217884',
+			appId            : 'app id',
 			autoLogAppEvents : true,
 			xfbml            : true,
 			version          : 'v2.10'
